@@ -47,10 +47,10 @@ footer{position:relative;background:#191c26;color:#faf7f3;padding:38px 24px 30px
 </div>
 <p class="launch-pill"><svg aria-hidden="true"><use href="#rocket"/></svg><span id="launch-copy">COUNTING DOWN TO LAUNCH</span></p>
 </section>
-<section class="live" id="live" aria-labelledby="live-title" hidden><h2 id="live-title">WE ARE LIVE!</h2><p>Pangolin Loop is officially here.</p></section>
+<section class="live" id="live" aria-labelledby="live-title" hidden><h2 id="live-title">WE'RE LIVE!</h2><p>Pangolin Loop is officially here.</p></section>
 <p class="target" id="target-date"></p>
 <p class="sr-only" id="announcement" role="status" aria-live="polite"></p>
-<noscript><p>Enable JavaScript to see the live countdown. Launch: 27 November 2026 at 09:00 SAST (UTC+2).</p></noscript>
+<noscript><p>Enable JavaScript to see the live countdown and launch date.</p></noscript>
 </main>
 <footer>
 <svg class="waves" viewBox="0 0 1600 130" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="copper"><stop stop-color="#9a4725"/><stop offset=".35" stop-color="#d68a59"/><stop offset=".7" stop-color="#d7c4b5"/><stop offset="1" stop-color="#a65a35"/></linearGradient></defs><path d="M0 0C400 160 1050 190 1600 5V130H0Z" fill="#e7d7cb"/><path d="M0 35C400 20 940 235 1600 30V130H0Z" fill="url(#copper)"/><path d="M0 86C390-20 840 245 1600 49V130H0Z" fill="#282a35"/><path d="M0 128C450-40 960 240 1600 76V130H0Z" fill="#191c26"/></svg>
@@ -61,7 +61,7 @@ footer{position:relative;background:#191c26;color:#faf7f3;padding:38px 24px 30px
 'use strict';
 // EDIT THIS ONE CONSTANT to change the fixed launch date and time.
 // +02:00 is South African Standard Time (SAST), independent of visitor timezone.
-const LAUNCH_AT = '2026-11-27T09:00:00+02:00';
+const LAUNCH_AT = '2026-11-30T09:00:00+02:00';
 
 const target = Date.parse(LAUNCH_AT);
 const fields = Object.fromEntries(['days','hours','minutes','seconds'].map(key => [key, document.getElementById(key)]));
@@ -85,28 +85,29 @@ function renderCountdown() {
     if (fields[key].textContent !== value) fields[key].textContent = value;
   }
   if (now >= target) {
+    document.getElementById('launch-copy').textContent = "WE'RE LIVE!";
     if (!launched) {
       launched = true;
       document.getElementById('countdown').hidden = true;
       document.getElementById('live').hidden = false;
       document.getElementById('headline').hidden = true;
-      document.getElementById('announcement').textContent = 'WE ARE LIVE! Pangolin Loop is officially here.';
-      document.title = 'Pangolin Loop — We are live!';
+      document.getElementById('announcement').textContent = "WE'RE LIVE! Pangolin Loop is officially here.";
+      document.title = "Pangolin Loop — WE'RE LIVE!";
       if (interval) clearInterval(interval);
     }
     return;
   }
-  const daysUntil = Math.ceil((target - now) / 86400000);
-  document.getElementById('launch-copy').textContent = daysUntil > 1
-    ? daysUntil + ' DAYS TO LAUNCH'
-    : daysUntil === 1 && target - now >= 86400000
-      ? '1 DAY TO LAUNCH' : 'LESS THAN A DAY TO LAUNCH';
+  document.getElementById('launch-copy').textContent = parts.days >= 1
+    ? parts.days + (parts.days === 1 ? ' DAY TO LAUNCH' : ' DAYS TO LAUNCH')
+    : 'LESS THAN A DAY TO LAUNCH';
 }
 if (Number.isFinite(target)) {
-  const label = new Intl.DateTimeFormat('en-ZA', {
+  const dateParts = Object.fromEntries(new Intl.DateTimeFormat('en-ZA', {
     timeZone:'Africa/Johannesburg', day:'numeric', month:'long', year:'numeric',
     hour:'2-digit', minute:'2-digit', hourCycle:'h23'
-  }).format(new Date(target));
+  }).formatToParts(new Date(target)).map(part => [part.type, part.value]));
+  const label = dateParts.day + ' ' + dateParts.month + ' ' + dateParts.year
+    + ' at ' + dateParts.hour + ':' + dateParts.minute;
   document.getElementById('target-date').textContent = 'Launching ' + label + ' SAST · UTC+2';
   renderCountdown();
   if (!launched) interval = setInterval(renderCountdown, 1000);
